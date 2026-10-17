@@ -76,8 +76,13 @@ export default function Footer() {
         )}
 
         <div className="border-t border-sand-300/40 dark:border-darkbg-border/60 pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-stone-600 dark:text-sand-400 gap-3">
-          <p className="flex items-center gap-1 text-center sm:text-left">
-            Made with <Heart className="w-3.5 h-3.5 text-terracotta-500 fill-terracotta-500 inline" /> for <strong className="text-stone-700 dark:text-sand-300">Human Happiness & Connection</strong>
+          <p className="flex items-center gap-1.5 text-center sm:text-left flex-wrap justify-center sm:justify-start">
+            <span>Built with</span>
+            <Heart className="w-3.5 h-3.5 text-terracotta-500 fill-terracotta-500 inline" />
+            <span>by</span>
+            <strong className="text-stone-800 dark:text-sand-200">Team Version Controllers</strong>
+            <span className="text-stone-400 dark:text-stone-500">•</span>
+            <span className="text-stone-700 dark:text-sand-300 font-medium">Ayush Chauhan & Rishav Ranjan</span>
           </p>
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-3.5 h-3.5 text-sage-600" />

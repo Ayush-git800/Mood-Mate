@@ -219,9 +219,12 @@ Generates an optimized static build in `dist/` in ~1.0 second.
 
 ## 👥 Hackathon Team & Acknowledgments
 
-- **Creator & Developer**: Ayush ([@Ayush-git800](https://github.com/Ayush-git800))
-- **Theme**: *Building for Human Happiness & Connection*
-- **Special Thanks**: Google Gemini API, Vite team, Tailwind Labs, and the open-source React ecosystem.
+- **Team Name**: **Version Controllers** 🚀
+- **Team Members**:
+  - **Ayush Chauhan** ([@Ayush-git800](https://github.com/Ayush-git800))
+  - **Rishav Ranjan**
+- **Hackathon Theme**: *Building for Human Happiness & Connection*
+- **Special Thanks**: Google Gemini AI Team, Vite Team, Tailwind Labs, and the React open-source ecosystem.
 
 ---
 

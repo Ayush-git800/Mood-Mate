@@ -7,6 +7,7 @@
 ## 🌟 1. Project Overview in 30 Seconds
 
 - **Project Name**: MoodMate — Your Everyday Happiness & Mental Reset Hub
+- **Team**: **Version Controllers** (Ayush Chauhan & Rishav Ranjan)
 - **Theme**: "Building for Human Happiness & Connection"
 - **What it does**: A mental wellness and emotional companion web app where users can track daily feelings (8 distinct moods), reflect with tailored micro-tasks and soundscapes, view weekly energy graphs, earn gamified "Growth Coins", practice 4-7-8 breathing, and chat with an empathetic, multi-turn AI companion (**Lumi 🌿**, powered by Google Gemini).
 - **Core Philosophy**: Non-punitive, non-clinical, and compassionate. Emotional ups and downs are treated like natural weather, not bugs to be fixed.
