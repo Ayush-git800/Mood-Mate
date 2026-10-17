@@ -93,9 +93,89 @@ How can I help you today?`
           text: m.text
         }));
 
-      // Prepare headers
+      const effectiveKey = customKey || localStorage.getItem('moodmate_gemini_key') || (import.meta.env && import.meta.env.VITE_GEMINI_API_KEY) || '';
+
+      if (!effectiveKey) {
+        setShowKeyModal(true);
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now() + 1,
+            sender: 'lumi',
+            text: `🌿 **Welcome!** To chat with Lumi live on this hosted site, please paste your Gemini API key in the popup modal that just opened (or click the 🔑 **Setup API Key** button in the header).\n\n*You can get a free key in seconds at [aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey).*`,
+            isError: false,
+            timestamp: Date.now()
+          }
+        ]);
+        return;
+      }
+
+      // 1. First, attempt direct browser call to Gemini (works 100% on Netlify, Vercel, and GitHub Pages)
+      try {
+          const contents = [];
+          for (const m of historyPayload) {
+            if (m.text && m.text.trim()) {
+              const role = m.sender === 'user' ? 'user' : 'model';
+              if (contents.length === 0 && role !== 'user') continue;
+              if (contents.length > 0 && contents[contents.length - 1].role === role) {
+                contents[contents.length - 1].parts[0].text += '\n\n' + m.text;
+              } else {
+                contents.push({ role, parts: [{ text: m.text }] });
+              }
+            }
+          }
+          if (contents.length > 0 && contents[contents.length - 1].role === 'user') {
+            contents[contents.length - 1].parts[0].text += '\n\n' + userText;
+          } else {
+            contents.push({ role: 'user', parts: [{ text: userText }] });
+          }
+
+          const directRes = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${effectiveKey}`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents,
+                systemInstruction: {
+                  parts: [{
+                    text: `You are Lumi 🌿, the empathetic, intelligent AI companion inside MoodMate. User: ${effectiveName}, mood: ${effectiveMood}. Support with emotional wellness as well as technical problem-solving (C++, algorithms, science, general knowledge). Always use clean Markdown formatting.`
+                  }]
+                }
+              })
+            }
+          );
+
+          const directData = await directRes.json();
+
+          if (directData?.candidates?.[0]?.content?.parts?.[0]?.text) {
+            const directReply = directData.candidates[0].content.parts[0].text;
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: Date.now() + 1,
+                sender: 'lumi',
+                text: directReply,
+                model: 'gemini-3.8-flash',
+                timestamp: Date.now()
+              }
+            ]);
+            playSingingBowlTone();
+            return;
+          }
+
+          if (directData?.error?.message) {
+            throw new Error(directData.error.message);
+          }
+        } catch (directErr) {
+          console.warn('Direct call to Gemini error:', directErr);
+          if (directErr.message && !directErr.message.includes('fetch') && !directErr.message.includes('Network')) {
+            throw directErr;
+          }
+        }
+
+      // 2. Fallback to /api/chat if running with backend dev server
       const headers = { 'Content-Type': 'application/json' };
-      const effectiveKey = customKey || localStorage.getItem('moodmate_gemini_key');
       if (effectiveKey) {
         headers['x-gemini-key'] = effectiveKey;
       }
@@ -111,86 +191,17 @@ How can I help you today?`
         })
       });
 
+      const contentType = response.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        throw new Error('Please enter a valid Gemini API key using the Key 🔑 button in the chat header.');
+      }
+
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        const errorMsg = data.message || data.error || `Server returned error (${response.status})`;
-        const errorCode = data.code || 'API_ERROR';
-
-        // If server failed with network error or fetch failed, attempt direct browser call as fallback
-        if (effectiveKey && (errorMsg.includes('fetch failed') || errorMsg.includes('network') || errorCode === 'INTERNAL_ERROR')) {
-          try {
-            const contents = [];
-            for (const m of historyPayload) {
-              if (m.text && m.text.trim()) {
-                const role = m.sender === 'user' ? 'user' : 'model';
-                if (contents.length === 0 && role !== 'user') continue;
-                if (contents.length > 0 && contents[contents.length - 1].role === role) {
-                  contents[contents.length - 1].parts[0].text += '\n\n' + m.text;
-                } else {
-                  contents.push({ role, parts: [{ text: m.text }] });
-                }
-              }
-            }
-            if (contents.length > 0 && contents[contents.length - 1].role === 'user') {
-              contents[contents.length - 1].parts[0].text += '\n\n' + userText;
-            } else {
-              contents.push({ role: 'user', parts: [{ text: userText }] });
-            }
-
-            const directRes = await fetch(
-              `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${effectiveKey}`,
-              {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  contents,
-                  systemInstruction: {
-                    parts: [{
-                      text: `You are Lumi 🌿, the empathetic, intelligent AI companion inside MoodMate. User: ${effectiveName}, mood: ${effectiveMood}. Support with emotional wellness as well as technical problem-solving (C++, algorithms, science, general knowledge). Always use clean Markdown formatting.`
-                    }]
-                  }
-                })
-              }
-            );
-
-            const directData = await directRes.json();
-            const directReply = directData?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-            if (directReply) {
-              setMessages((prev) => [
-                ...prev,
-                {
-                  id: Date.now() + 1,
-                  sender: 'lumi',
-                  text: directReply,
-                  model: 'gemini-3.8-flash',
-                  timestamp: Date.now()
-                }
-              ]);
-              playSingingBowlTone();
-              return;
-            }
-          } catch (directErr) {
-            console.warn('Direct fallback failed:', directErr);
-          }
-        }
-
-        // Add explicit error bubble - NO FAKE CANNED RESPONSES!
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: Date.now() + 1,
-            sender: 'lumi',
-            text: `⚠️ **AI Service Error (${errorCode})**:\n\n${errorMsg}\n\n*Note: To resolve this, you can configure your \`GEMINI_API_KEY\` in your \`.env\` file or click the Key 🔑 button in the chat header to enter your API key directly.*`,
-            isError: true,
-            timestamp: Date.now()
-          }
-        ]);
-        return;
+        throw new Error(data.message || data.error || `Server returned status ${response.status}`);
       }
 
-      // Successful genuine AI response from Google Gemini
       if (data.model) {
         setActiveModel(data.model);
       }
@@ -201,11 +212,10 @@ How can I help you today?`
           id: Date.now() + 1,
           sender: 'lumi',
           text: data.reply,
-          model: data.model,
+          model: data.model || 'gemini-3.8-flash',
           timestamp: Date.now()
         }
       ]);
-
       playSingingBowlTone();
     } catch (err) {
       console.error('Chat error:', err);
@@ -214,7 +224,7 @@ How can I help you today?`
         {
           id: Date.now() + 1,
           sender: 'lumi',
-          text: `⚠️ **Connection Error**: Unable to reach the MoodMate AI backend endpoint (/api/chat).\n\nDetails: ${err.message || 'Network request failed'}. Please verify the Vite dev server is running.`,
+          text: `⚠️ **AI Service Notice**: ${err.message || 'Unable to connect to Gemini AI'}.\n\n*Tip: Click the Key 🔑 button above to verify or enter your Gemini API key.*`,
           isError: true,
           timestamp: Date.now()
         }
