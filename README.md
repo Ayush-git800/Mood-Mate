@@ -344,7 +344,7 @@ Proudly designed and engineered by **Team Version Controllers**:
 | Member | Role & Contributions | GitHub |
 | :--- | :--- | :--- |
 | **Ayush Chauhan** | Lead Architecture, React State Engine, Gemini AI Integration | [@Ayush-git800](https://github.com/Ayush-git800) |
-| **Rishav Ranjan** | Product Design, UI/UX Styling, Sensory Grounding & Animations | Team Version Controllers |
+| **Rishav Ranjan** | Product Design, UI/UX Styling, Sensory Grounding & Animations | [@rishavgiri1106-dotcom](https://github.com/rishavgiri1106-dotcom) |
 
 ---
 
